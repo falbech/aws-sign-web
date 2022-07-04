@@ -56,6 +56,11 @@ describe('AwsSigner', function() {
             const signed = awsSigner.sign(testReq.request, signDate);
             assert.equal(signed.Authorization, testReq.expectedAuthorization);
         });
+        it('should handle GET request with query parameters from both URI and config', function() {
+            const testReq = getTestRequest('get-vanilla-query-uri-config');
+            const signed = awsSigner.sign(testReq.request, signDate);
+            assert.equal(signed.Authorization, testReq.expectedAuthorization);
+        });
         it('should handle GET request with unreserved characters in query parameter', function() {
             const testReq = getTestRequest('get-vanilla-query-unreserved');
             const signed = awsSigner.sign(testReq.request, signDate);
@@ -88,18 +93,23 @@ function readTestSuiteFiles(name) {
     const testPath = `${testSuiteRoot}/${name}`;
     var req = fs.readFileSync(`${testPath}/${name}.req`, 'utf8');
     var authz = fs.readFileSync(`${testPath}/${name}.authz`, 'utf8');
-    return {req, authz};
+    var params = fs.existsSync(`${testPath}/${name}.params`) ?
+        fs.readFileSync(`${testPath}/${name}.params`, 'utf8') :
+        '{}';
+    return {req, authz, params};
 }
 
 function getTestRequest(name) {
     const testSuite = readTestSuiteFiles(name);
     const httpRequest = httpParser.parseRequest(testSuite.req);
+    const params = JSON.parse(testSuite.params);
     return {
         request: {
             method: httpRequest.method,
             url: `https://${httpRequest.headers.Host}${httpRequest.uri}`,
             headers: httpRequest.headers,
             body: httpRequest.body,
+            params,
         },
         expectedAuthorization: testSuite.authz
     };
