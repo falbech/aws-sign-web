@@ -144,9 +144,16 @@
             }).join('/') + '\n' +
                 // Canonical Query String:
             flatten(Object.keys(ws.uri.queryParams).sort().map(function (key) {
-                return ws.uri.queryParams[key].sort().map(function(val) {
+                var queryParamsForKey = ws.uri.queryParams[key];
+                if (Array.isArray(queryParamsForKey)) {
+                    // Sort is going to mutate this array, which we don't necessarily own, so we make a defensive copy
+                    queryParamsForKey = [].slice.call(queryParamsForKey);
+                } else {
+                    queryParamsForKey = [queryParamsForKey];
+                }
+                return queryParamsForKey.sort().map(function(val) {
                     return encodeURIComponent(key) + '=' + encodeURIComponent(val);
-                })
+                });
             })).join('&') + '\n' +
                 // Canonical Headers:
             ws.sortedHeaderKeys.map(function (key) {
