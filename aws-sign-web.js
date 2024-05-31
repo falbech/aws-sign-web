@@ -89,6 +89,20 @@
         };
     };
 
+    AwsSigner.prototype.getPresignedUrl = function (request, signDate) {
+        const signatureHeaders = this.sign(request, signDate)
+        const tokens = signatureHeaders['Authorization'].split('AWS4-HMAC-SHA256')
+        const entries = tokens[1].split(',')
+        const authElements = entries.reduce((prev,curr)=>{
+            const trimmed = curr.trim();
+            const [k,v] = trimmed.split('=')
+            prev[k] = v
+            return prev;
+        }, {})
+        const presignedUrl = request.url + '?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=' + authElements['Credential'] + '&X-Amz-Date=' + signature['x-amz-date'] + '&X-Amz-Expires=3600&X-Amz-Signature='+ authElements['Signature'] + ' &X-Amz-SignedHeaders='  + authElements['SignedHeaders'];
+        return presignedUrl
+    };
+
     // Some preparations
     function prepare(self, ws) {
         var headers = {
