@@ -162,7 +162,8 @@
                 // Signed Headers:
             ws.signedHeaders + '\n' +
                 // Hashed Payload
-            self.hasher.hash((ws.payload) ? ws.payload : '');
+            // self.hasher.hash((ws.payload) ? ws.payload : '');
+            'UNSIGNED-PAYLOAD'
     }
 
     // Construct the string that will be signed.
