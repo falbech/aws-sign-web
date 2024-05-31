@@ -231,8 +231,6 @@
      * Therefore it most likely will only work in a web browser.
      */
     function SimpleUriParser() {
-        var parser = document ? document.createElement('a') : {};
-
         /**
          * Parse the given URI.
          * @param {string} uri The URI to parse.
@@ -243,7 +241,17 @@
          * `queryParams`: Query parameters as JavaScript object.
          */
         return function (uri) {
+            const urlRegex = /^(([^:/?#]+):)?(\/\/([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?/;
+            const match = uri.match(urlRegex);
+            if (!match) {
+                throw new Error('Cannot parse URL!')
+            }
+            const [_q, protocol, _w, _r, hostname, path, query, _e, fragment] = match;
+            const parser = {};
             parser.href = uri;
+            parser.host = hostname;
+            parser.pathname = path;
+            parser.search = query;
             return {
                 protocol: parser.protocol,
                 host: parser.host.replace(/^(.*):((80)|(443))$/, '$1'),
@@ -251,6 +259,7 @@
                     decodeURI(parser.pathname),
                 queryParams: extractQueryParams(parser.search)
             };
+
         };
 
         function extractQueryParams(search) {
